@@ -2,3 +2,6 @@ data/
 build/
 .idea
 .swp
+node_modules/
+resources/
+.gitignore.swp
