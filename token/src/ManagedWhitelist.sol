@@ -1,6 +1,7 @@
-pragma solidity ^0.7.4;
+//SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.6.0;
 
-import "../lib/whitelist/Managed.sol";
+import "token/lib/whitelist/Managed.sol";
 
 contract ManagedWhitelist is Managed {
 

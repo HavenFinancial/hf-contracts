@@ -1,10 +1,11 @@
-pragma solidity ^0.7.4;
+//SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.6.0;
 
-import "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import "node_modules/@openzeppelin/contracts/access/Ownable.sol";
 
 contract Managed is Ownable {
     mapping (address => bool) public managers;
-    
+
     modifier onlyManager () {
         require(isManager(), "Only managers may perform this action");
         _;
@@ -12,7 +13,7 @@ contract Managed is Ownable {
 
     modifier onlyManagerOrOwner () {
         require(
-            checkManagerStatus(msg.sender) || msg.sender == owner,
+            checkManagerStatus(msg.sender) || msg.sender == owner(),
             "Only managers or owners may perform this action"
         );
         _;
