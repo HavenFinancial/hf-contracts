@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.9;
 
-import "node_modules/@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Managed is Ownable {
     mapping (address => bool) public managers;
