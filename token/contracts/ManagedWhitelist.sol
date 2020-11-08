@@ -1,12 +1,12 @@
 //SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.6.9;
 
-import "lib/whitelist/Managed.sol";
+import "./lib/whitelist/Managed.sol";
 
 contract ManagedWhitelist is Managed {
 
-    mapping (address => bool) public sendAllowed;
-    mapping (address => bool) public receiveAllowed;
+    mapping (address => bool) internal sendAllowed;
+    mapping (address => bool) internal receiveAllowed;
 
     modifier onlySendAllowed {
         require(sendAllowed[msg.sender], "Sender is not whitelisted");
@@ -16,6 +16,14 @@ contract ManagedWhitelist is Managed {
     modifier onlyReceiveAllowed {
         require(receiveAllowed[msg.sender], "Recipient is not whitelisted");
         _;
+    }
+
+    function sendAuthorized(address from) public view returns (bool) {
+        return sendAllowed[from];
+    }
+
+    function receiveAuthorized(address to) public view returns (bool) {
+        return receiveAllowed[to];
     }
 
     function addToSendAllowed (address operator) public onlyManagerOrOwner {
