@@ -18,11 +18,11 @@ contract ManagedWhitelist is Managed {
         _;
     }
 
-    function sendAuthorized(address from) public view returns (bool) {
+    function sendAuthorized(address from, uint value) public view returns (bool) {
         return sendAllowed[from];
     }
 
-    function receiveAuthorized(address to) public view returns (bool) {
+    function receiveAuthorized(address to, uint value) public view returns (bool) {
         return receiveAllowed[to];
     }
 

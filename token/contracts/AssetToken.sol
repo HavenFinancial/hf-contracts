@@ -32,9 +32,9 @@ contract AssetToken is ERC20, ERC1404, WhitelistAddressManager {
     {
         ManagedWhitelist m = ManagedWhitelist(whitelistAddress);
 
-        if (!m.sendAuthorized(from)) {
+        if (!m.sendAuthorized(from, value)) {
             restrictionCode = SEND_NOT_ALLOWED_CODE;
-        } else if (!m.receiveAuthorized(to)) {
+        } else if (!m.receiveAuthorized(to, value)) {
             restrictionCode = RECEIVE_NOT_ALLOWED_CODE;
         } else {
             restrictionCode = SUCCESS_CODE;
@@ -42,7 +42,7 @@ contract AssetToken is ERC20, ERC1404, WhitelistAddressManager {
     }
 
     //@Override
-    function messageForTransferRestriction (uint8 calldata restrictionCode) override public view returns (string memory message)
+    function messageForTransferRestriction (uint8 restrictionCode) override public view returns (string memory message)
     {
         if(restrictionCode == SUCCESS_CODE){
             message = SUCCESS_MESSAGE;
