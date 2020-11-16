@@ -3,8 +3,8 @@ name: Deploy Token - Ropsten
 on:
   push:
     branches: [ staging ]
-  paths:
-    - 'token/contracts/AssetToken.sol'
+    paths:
+      - 'token/contracts/AssetToken.sol'
 
 env:
   SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
