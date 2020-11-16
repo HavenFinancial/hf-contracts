@@ -24,9 +24,10 @@ def deploy_contract(node, private_key, contract, args):
                 "Content-type": "application/json; charset=UTF-8",
                 "Authorization": f'Bearer {token}'
             }
+            contract_name = contract.split(".")[0].split("/")[1]
             params = {
                 "channel": "#alerts",
-                "text": f'New {contract.split(".")[0]} contract has been deployed to <https://ropsten.etherscan.io/address/{tx_receipt.contractAddress}|{tx_receipt.contractAddress}>'
+                "text": f'New {contract_name} contract has been deployed to <https://ropsten.etherscan.io/address/{tx_receipt.contractAddress}|{tx_receipt.contractAddress}>'
             }
 
             response = requests.post(url, headers=headers, json=params)
