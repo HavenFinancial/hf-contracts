@@ -67,4 +67,5 @@ contract AssetToken is ERC20, ERC1404, WhitelistAddressManager {
         success = super.transferFrom(from, to, value);
     }
 
+
 }

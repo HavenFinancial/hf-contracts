@@ -7,12 +7,13 @@ from Node import Node
 node = Node(protocol='ws', address='wss://ropsten.infura.io/ws/v3/24fa53788c314fe5a1dafcd9cd37c3e9')
 key = sys.argv[1]
 contract = sys.argv[2]
-arg_file = sys.argv[3]
+args = []
+if len(sys.argv) > 2:
+    arg_file = sys.argv[3]
+    with open('args/' + arg_file) as f:
+        args = f.read().split(',')
 
 contract = f'compiled/{contract}'
-
-with open('args/' + arg_file) as f:
-    args = f.read().split(',')
 
 new_args = []
 
