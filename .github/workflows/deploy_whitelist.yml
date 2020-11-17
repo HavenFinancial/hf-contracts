@@ -1,0 +1,48 @@
+name: Deploy Token - Ropsten
+
+on:
+  push:
+    branches: [ staging ]
+    paths:
+      - 'token/contracts/ManagedWhitelist.sol'
+
+env:
+  SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '12'
+
+      - uses: actions/setup-python@v2
+
+      - name: NPM Dependencies
+        run: |
+          sudo apt-get install jq
+          cat package-lock.json | jq '.dependencies[].resolved' | xargs npm i -g -f --no-package-lock
+          npm install @truffle/hdwallet-provider
+
+      - name: Python Dependencies
+        run: |
+          pip install -r requirements.txt
+        working-directory: 'auto-deploy'
+
+      - name: Truffle Compile
+        run: |
+          truffle compile
+          mkdir ../auto-deploy/compiled
+          cp './build/contracts/ManagedWhitelist.json' '../auto-deploy/compiled/ManagedWhitelist.json'
+        working-directory: 'whitelist'
+
+      - name: Deploy Contract
+        run: |
+          DECODED_KEY=$(echo $SIGNING_KEY | base64 --decode)
+          python3 main.py $DECODED_KEY 'ManagedWhitelist.json'
+        working-directory: 'auto-deploy'
+
