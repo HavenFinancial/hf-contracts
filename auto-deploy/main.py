@@ -8,7 +8,7 @@ node = Node(protocol='ws', address='wss://ropsten.infura.io/ws/v3/24fa53788c314f
 key = sys.argv[1]
 contract = sys.argv[2]
 args = []
-if len(sys.argv) > 2:
+if len(sys.argv) > 3:
     arg_file = sys.argv[3]
     with open('args/' + arg_file) as f:
         args = f.read().split(',')
