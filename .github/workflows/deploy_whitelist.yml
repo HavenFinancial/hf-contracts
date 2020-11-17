@@ -38,7 +38,7 @@ jobs:
           truffle compile
           mkdir ../auto-deploy/compiled
           cp './build/contracts/ManagedWhitelist.json' '../auto-deploy/compiled/ManagedWhitelist.json'
-        working-directory: 'whitelist'
+        working-directory: 'token'
 
       - name: Deploy Contract
         run: |

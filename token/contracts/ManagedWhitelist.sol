@@ -51,7 +51,5 @@ contract ManagedWhitelist is Managed {
         removeFromSendAllowed(operator);
         removeFromReceiveAllowed(operator);
     }
-
-    // Test Build
-
+    
 }
