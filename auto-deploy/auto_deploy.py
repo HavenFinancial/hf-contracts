@@ -31,8 +31,6 @@ def deploy_contract(node, private_key, contract, args):
             }
 
             response = requests.post(url, headers=headers, json=params)
-            print(response.status_code)
-            print(response.content)
 
     except Exception as e:
         print("Failed to deploy contract")
