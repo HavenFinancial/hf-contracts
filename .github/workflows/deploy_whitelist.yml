@@ -1,4 +1,4 @@
-name: Deploy Token - Ropsten
+name: Deploy Whitelist - Ropsten
 
 on:
   push:
