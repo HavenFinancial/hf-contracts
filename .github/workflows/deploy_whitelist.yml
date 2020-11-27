@@ -5,6 +5,10 @@ on:
     branches: [ staging ]
     paths:
       - 'token/contracts/ManagedWhitelist.sol'
+    workflow_dispatch:
+      inputs:
+        tags:
+          tags: 'Tags'
 
 env:
   SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
