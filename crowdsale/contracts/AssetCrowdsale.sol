@@ -25,15 +25,8 @@ contract Crowdsale is ReentrancyGuard, Ownable {
     // How many token units a buyer gets per DAI.
     uint256 _ratePerDai;
 
-    // Amount of DAI raised
-    uint256 _daiRaised;
-
-    // Total amount of tokens to distribute
-    uint256 private _distributionQuantity;
-
-    constructor(uint256 ratePerDai, uint256 distributionQuantity, address payable storageWalletAddress, address assetTokenAddress, address uniswapAddress, address daiAddress) public {
+    constructor(uint256 ratePerDai, address payable storageWalletAddress, address assetTokenAddress, address uniswapAddress, address daiAddress) public {
         _ratePerDai = ratePerDai;
-        _distributionQuantity = distributionQuantity;
         _storageWalletAddress = storageWalletAddress;
         _assetTokenAddress = assetTokenAddress;
         _uniswapAddress = uniswapAddress;
@@ -55,16 +48,17 @@ contract Crowdsale is ReentrancyGuard, Ownable {
         //deliver tokens
         processPurchase(beneficiary, tokens);
 
-        // update state
-        _daiRaised = _daiRaised.add(daiAmount);
-
-        //Send the funds
-        forwardDai(daiAmount);
-
         emit TokensPurchased(msg.sender, beneficiary, daiAmount, tokens);
     }
 
-    function buyTokensWithDai(address beneficiary, uint256 amountDai) public nonReentrant payable {
+    function buyExactTokensWithDai(address beneficiary, uint256 amountDai, uint256 minimumTokenQuantity) public nonReentrant {
+        //TODO
+
+        //Sanity check
+        preValidatePurchase(beneficiary, amountDai);
+    }
+
+    function buyExactTokensWithEth(address beneficiary, uint256 amountDai, uint256 minimumTokenQuantity) public nonReentrant payable {
         //TODO
 
         //Sanity check
@@ -87,9 +81,10 @@ contract Crowdsale is ReentrancyGuard, Ownable {
         _daiAddress = daiAddress;
     }
 
-    function preValidatePurchase(address beneficiary, uint256 amount) internal pure {
+    function preValidatePurchase(address beneficiary, uint256 amount) internal view {
         require(beneficiary != address(0), "Beneficiary is the zero address");
         require(amount != 0, "Amount is 0");
+        require(getRemainingDistributionQuantity() > 0, "Asset has been fully distributed");
     }
 
     function getTokenAmount(uint256 daiAmount) internal view returns (uint256) {
@@ -119,12 +114,17 @@ contract Crowdsale is ReentrancyGuard, Ownable {
         path[0] = uniswap.WETH();
         path[1] = _daiAddress;
 
+        // TODO
         uint[] memory amounts = uniswap.swapExactETHForTokens{value: quantity}(0, path, _storageWalletAddress, block.timestamp);
         //TODO check there's enough tokens tokens left to distribute, if not they'll need ETH change
 
         //TODO return the ETH dust
 
         return amounts[1];
+    }
+
+    function getRemainingDistributionQuantity() internal view returns (uint256){
+        return IERC20(_assetTokenAddress).balanceOf(address(this));
     }
 
     receive() external payable {
