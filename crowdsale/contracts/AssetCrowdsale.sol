@@ -22,7 +22,7 @@ contract Crowdsale is ReentrancyGuard, Ownable {
     // Address where funds are collected
     address payable private _storageWalletAddress;
 
-    // How many token units a buyer gets per DAI.
+    // How many token units a buyer gets per DAI. 120 = 1.2 tokens per dai.
     uint256 _ratePerDai;
 
     constructor(uint256 ratePerDai, address payable storageWalletAddress, address assetTokenAddress, address uniswapAddress, address daiAddress) public {
@@ -45,25 +45,36 @@ contract Crowdsale is ReentrancyGuard, Ownable {
         // calculate token amount purchased
         uint256 tokens = getTokenAmount(daiAmount);
 
+        //Ensure there's enough tokens to cover
+        require(tokens >= getRemainingDistributionQuantity(), "Not enough tokens remaining. Please specify exact amount");
+
         //deliver tokens
         processPurchase(beneficiary, tokens);
 
-        emit TokensPurchased(msg.sender, beneficiary, daiAmount, tokens);
+        //audit trail
+        emit TokensPurchasedWithEth(msg.sender, beneficiary, msg.value, tokens);
     }
 
-    function buyExactTokensWithDai(address beneficiary, uint256 amountDai, uint256 minimumTokenQuantity) public nonReentrant {
-        //TODO
-
+    function buyTokensWithDai(address beneficiary, uint256 daiAmount) public nonReentrant {
         //Sanity check
-        preValidatePurchase(beneficiary, amountDai);
+        preValidatePurchase(beneficiary, daiAmount);
+
+        //Transfer the tokens from the user to us
+        require(transferDaiFromBeneficiary(beneficiary, daiAmount), "Unable to transfer tokens from beneficiary");
+
+        // calculate token amount purchased
+        uint256 tokens = getTokenAmount(daiAmount);
+
+        //Ensure there's enough tokens to cover
+        require(tokens >= getRemainingDistributionQuantity(), "Not enough tokens remaining. Please specify exact amount");
+
+        //deliver tokens
+        processPurchase(beneficiary, tokens);
+
+        //audit trail
+        emit TokensPurchasedWithDai(msg.sender, beneficiary, daiAmount, tokens);
     }
 
-    function buyExactTokensWithEth(address beneficiary, uint256 amountDai, uint256 minimumTokenQuantity) public nonReentrant payable {
-        //TODO
-
-        //Sanity check
-        preValidatePurchase(beneficiary, amountDai);
-    }
 
     function updateAssetTokenAddress(address assetTokenAddress) public onlyOwner {
         _assetTokenAddress = assetTokenAddress;
@@ -88,7 +99,7 @@ contract Crowdsale is ReentrancyGuard, Ownable {
     }
 
     function getTokenAmount(uint256 daiAmount) internal view returns (uint256) {
-        return daiAmount.mul(_ratePerDai);
+        return daiAmount.mul(_ratePerDai).div(100);
     }
 
     function processPurchase(address beneficiary, uint256 tokenAmount) internal {
@@ -101,12 +112,6 @@ contract Crowdsale is ReentrancyGuard, Ownable {
         assetToken.transfer(beneficiary, tokenAmount);
     }
 
-    function forwardDai(uint256 quantity) internal {
-        IERC20 daiToken = IERC20(_daiAddress);
-
-        daiToken.transfer(_storageWalletAddress, quantity);
-    }
-
     function convertEthToDai(uint256 quantity) internal returns (uint256) {
         IUniswapV2Router01 uniswap = IUniswapV2Router01(_uniswapAddress);
 
@@ -114,11 +119,7 @@ contract Crowdsale is ReentrancyGuard, Ownable {
         path[0] = uniswap.WETH();
         path[1] = _daiAddress;
 
-        // TODO
         uint[] memory amounts = uniswap.swapExactETHForTokens{value: quantity}(0, path, _storageWalletAddress, block.timestamp);
-        //TODO check there's enough tokens tokens left to distribute, if not they'll need ETH change
-
-        //TODO return the ETH dust
 
         return amounts[1];
     }
@@ -127,11 +128,19 @@ contract Crowdsale is ReentrancyGuard, Ownable {
         return IERC20(_assetTokenAddress).balanceOf(address(this));
     }
 
+    function transferDaiFromBeneficiary(address beneficiary, uint256 quantity) internal returns (bool) {
+        return IERC20(_daiAddress).transferFrom(beneficiary, _storageWalletAddress, quantity);
+    }
+
     receive() external payable {
         buyTokensWithEth(msg.sender);
     }
 
-    //TODO add self destruct which returns all tokens to given address
+    function selfDestruct() public onlyOwner {
+        IERC20(_assetTokenAddress).transfer(_storageWalletAddress, IERC20(_assetTokenAddress).balanceOf(address(_storageWalletAddress)));
+        selfDestruct();
+    }
 
-    event TokensPurchased(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
+    event TokensPurchasedWithEth(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
+    event TokensPurchasedWithDai(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
 }
